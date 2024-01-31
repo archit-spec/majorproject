@@ -1,4 +1,5 @@
 # Classification/Identification of vandalism
+- project model [huggingface link](https://huggingface.co/archit11/videomae-base-finetuned-fight-nofight-subset2) 
 - the project uses transformer based deeplearning model [videomae](https://github.com/MCG-NJU/VideoMAE) to detect vandalism 
 
 
