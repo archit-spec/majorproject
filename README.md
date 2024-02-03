@@ -44,7 +44,7 @@ The following hyperparameters were used during training:
 
 ## Demo
 
-![Video Demo](demo_vid.mp4)
+![Video Demo](./media/demo_vid.mp4)
 
 ## License
 
