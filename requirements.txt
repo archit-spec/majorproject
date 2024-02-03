@@ -3,6 +3,12 @@ torchvision
 einops 
 timm
 Pillow
-decord
-optimum[onnxruntime] @ git+https://github.com/huggingface/optimum.git
-
+#decord
+#optimum[onnxruntime] @ git+https://github.com/huggingface/optimum.git
+opencv-python
+imutils 
+numpy
+torch
+torchvision
+pytorchvideo
+transformers

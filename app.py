@@ -1,102 +1,146 @@
-import os
-import torch
-import numpy as np
-import torch.nn.functional as F
-import torchvision.transforms as T
-from PIL import Image
-from decord import VideoReader
-from decord import cpu
-from uniformer import uniformer_small
-from kinetics_class_index import kinetics_classnames
-from transforms import (
-    GroupNormalize, GroupScale, GroupCenterCrop, 
-    Stack, ToTorchFormatTensor
-)
-
+import cv2
 import gradio as gr
-from huggingface_hub import hf_hub_download
+import imutils
+import numpy as np
+import torch
+from pytorchvideo.transforms import (
+    ApplyTransformToKey,
+    Normalize,
+    RandomShortSideScale,
+    RemoveKey,
+    ShortSideScale,
+    UniformTemporalSubsample,
+)
+from torchvision.transforms import (
+    Compose,
+    Lambda,
+    RandomCrop,
+    RandomHorizontalFlip,
+    Resize,
+)
+from transformers import VideoMAEFeatureExtractor, VideoMAEForVideoClassification
+
+MODEL_CKPT = "archit11/videomae-base-finetuned-fight-nofight-subset2"
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+MODEL = VideoMAEForVideoClassification.from_pretrained(MODEL_CKPT).to(DEVICE)
+PROCESSOR = VideoMAEFeatureExtractor.from_pretrained(MODEL_CKPT)
+
+RESIZE_TO = PROCESSOR.size["shortest_edge"]
+NUM_FRAMES_TO_SAMPLE = MODEL.config.num_frames
+IMAGE_STATS = {"image_mean": [0.485, 0.456, 0.406], "image_std": [0.229, 0.224, 0.225]}
+VAL_TRANSFORMS = Compose(
+    [
+        UniformTemporalSubsample(NUM_FRAMES_TO_SAMPLE),
+        Lambda(lambda x: x / 255.0),
+        Normalize(IMAGE_STATS["image_mean"], IMAGE_STATS["image_std"]),
+        Resize((RESIZE_TO, RESIZE_TO)),
+    ]
+)
+LABELS = list(MODEL.config.label2id.keys())
 
 
-def get_index(num_frames, num_segments=16, dense_sample_rate=8):
-    sample_range = num_segments * dense_sample_rate
-    sample_pos = max(1, 1 + num_frames - sample_range)
-    t_stride = dense_sample_rate
-    start_idx = 0 if sample_pos == 1 else sample_pos // 2
-    offsets = np.array([
-        (idx * t_stride + start_idx) %
-        num_frames for idx in range(num_segments)
-    ])
-    return offsets + 1
+def parse_video(video_file):
+    """A utility to parse the input videos.
+
+    Reference: https://pyimagesearch.com/2018/11/12/yolo-object-detection-with-opencv/
+    """
+    vs = cv2.VideoCapture(video_file)
+
+    # try to determine the total number of frames in the video file
+    try:
+        prop = (
+            cv2.cv.CV_CAP_PROP_FRAME_COUNT
+            if imutils.is_cv2()
+            else cv2.CAP_PROP_FRAME_COUNT
+        )
+        total = int(vs.get(prop))
+        print("[INFO] {} total frames in video".format(total))
+
+    # an error occurred while trying to determine the total
+    # number of frames in the video file
+    except:
+        print("[INFO] could not determine # of frames in video")
+        print("[INFO] no approx. completion time can be provided")
+        total = -1
+
+    frames = []
+
+    # loop over frames from the video file stream
+    while True:
+        # read the next frame from the file
+        (grabbed, frame) = vs.read()
+        if frame is not None:
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            frames.append(frame)
+        # if the frame was not grabbed, then we have reached the end
+        # of the stream
+        if not grabbed:
+            break
+
+    return frames
 
 
-def load_video(video_path):
-    vr = VideoReader(video_path, ctx=cpu(0))
-    num_frames = len(vr)
-    frame_indices = get_index(num_frames, 16, 16)
+def preprocess_video(frames: list):
+    """Utility to apply preprocessing transformations to a video tensor."""
+    # Each frame in the `frames` list has the shape: (height, width, num_channels).
+    # Collated together the `frames` has the the shape: (num_frames, height, width, num_channels).
+    # So, after converting the `frames` list to a torch tensor, we permute the shape
+    # such that it becomes (num_channels, num_frames, height, width) to make
+    # the shape compatible with the preprocessing transformations. After applying the
+    # preprocessing chain, we permute the shape to (num_frames, num_channels, height, width)
+    # to make it compatible with the model. Finally, we add a batch dimension so that our video
+    # classification model can operate on it.
+    video_tensor = torch.tensor(np.array(frames).astype(frames[0].dtype))
+    video_tensor = video_tensor.permute(
+        3, 0, 1, 2
+    )  # (num_channels, num_frames, height, width)
+    video_tensor_pp = VAL_TRANSFORMS(video_tensor)
+    video_tensor_pp = video_tensor_pp.permute(
+        1, 0, 2, 3
+    )  # (num_frames, num_channels, height, width)
+    video_tensor_pp = video_tensor_pp.unsqueeze(0)
+    return video_tensor_pp.to(DEVICE)
 
-    # transform
-    crop_size = 224
-    scale_size = 256
-    input_mean = [0.485, 0.456, 0.406]
-    input_std = [0.229, 0.224, 0.225]
 
-    transform = T.Compose([
-        GroupScale(int(scale_size)),
-        GroupCenterCrop(crop_size),
-        Stack(),
-        ToTorchFormatTensor(),
-        GroupNormalize(input_mean, input_std) 
-    ])
+def infer(video_file):
+    frames = parse_video(video_file)
+    video_tensor = preprocess_video(frames)
+    inputs = {"pixel_values": video_tensor}
 
-    images_group = list()
-    for frame_index in frame_indices:
-        img = Image.fromarray(vr[frame_index].asnumpy())
-        images_group.append(img)
-    torch_imgs = transform(images_group)
-    
-    # The model expects inputs of shape: B x C x T x H x W
-    TC, H, W = torch_imgs.shape
-    torch_imgs = torch_imgs.reshape(1, TC//3, 3, H, W).permute(0, 2, 1, 3, 4)
+    # forward pass
+    with torch.no_grad():
+        outputs = MODEL(**inputs)
+        logits = outputs.logits
+    softmax_scores = torch.nn.functional.softmax(logits, dim=-1).squeeze(0)
+    confidences = {LABELS[i]: float(softmax_scores[i]) for i in range(len(LABELS))}
+    return confidences
 
-    return torch_imgs
-    
-
-def inference(video):
-    vid = load_video(video)
-    
-    prediction = model(vid)
-    prediction = F.softmax(prediction, dim=1).flatten()
-
-    return {kinetics_id_to_classname[str(i)]: float(prediction[i]) for i in range(400)}
-    
-
-# Device on which to run the model
-# Set to cuda to load on GPU
-device = "cpu"
-model_path = hf_hub_download(repo_id="Sense-X/uniformer_video", filename="uniformer_small_k400_16x8.pth")
-# Pick a pretrained model 
-model = uniformer_small()
-state_dict = torch.load(model_path, map_location='cpu')
-model.load_state_dict(state_dict)
-
-# Set to eval mode and move to desired device
-model = model.to(device)
-model = model.eval()
-
-# Create an id to label name mapping
-kinetics_id_to_classname = {}
-for k, v in kinetics_classnames.items():
-    kinetics_id_to_classname[k] = v
-
-inputs = gr.inputs.Video()
-label = gr.outputs.Label(num_top_classes=5)
-
-title = "UniFormer-S"
-description = "Gradio demo for UniFormer: To use it, simply upload your video, or click one of the examples to load them. Read more at the links below."
-article = "<p style='text-align: center'><a href='https://arxiv.org/abs/2201.04676' target='_blank'>[ICLR2022] UniFormer: Unified Transformer for Efficient Spatiotemporal Representation Learning</a> | <a href='https://github.com/Sense-X/UniFormer' target='_blank'>Github Repo</a></p>"
 
 gr.Interface(
-    inference, inputs, outputs=label, 
-    title=title, description=description, article=article, 
-    examples=[['hitting_baseball.mp4'], ['hoverboarding.mp4'], ['yoga.mp4']]
-    ).launch(enable_queue=True)
+    fn=infer,
+    inputs=gr.Video(type="file"),
+    outputs=gr.Label(num_top_classes=3),
+    examples=[
+        ["examples/fight.mp4"],
+        ["examples/baseball.mp4"],
+        ["examples/balancebeam.mp4"],
+        ["./examples/no-fight1.avi"],
+        ["./examples/no-fight2.avi"],
+        ["./examples/no-fight3.avi"],
+        ["./examples/no-fight4.avi"],
+        
+        
+    ],
+   title="VideoMAE fin-tuned on a subset of Fight / No Fight dataset",
+    description=(
+        "Gradio demo for VideoMAE for video classification. To use it, simply upload your video or click one of the"
+        " examples to load them. Read more at the links below."
+    ),
+    article=(
+        "<div style='text-align: center;'><a href='https://huggingface.co/docs/transformers/model_doc/videomae' target='_blank'>VideoMAE</a>"
+        " <center><a href='https://huggingface.co/sayakpaul/videomae-base-finetuned-kinetics-finetuned-ucf101-subset' target='_blank'>Fine-tuned Model</a></center></div>"
+    ),
+    allow_flagging=False,
+    allow_screenshot=False,
+).launch()
