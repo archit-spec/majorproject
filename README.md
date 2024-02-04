@@ -48,6 +48,15 @@ The following hyperparameters were used during training:
 
 ## License
 
-This project is licensed under the [Creative Commons Attribution-NonCommercial 4.0 International License](https://creativecommons.org/licenses/by-nc/4.0/).
+
+This project is licensed under the [Creative Commons Attribution-NonCommercial 5.0 International License](https://creativecommons.org/licenses/by-nc/4.0/).
+
+
+## TO run 
+ install dependences :
+`` pip install -r requirements.txt``
+
+ run :
+```python app.py```
 
 

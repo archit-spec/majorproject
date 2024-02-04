@@ -125,10 +125,10 @@ gr.Interface(
         ["examples/fight.mp4"],
         ["examples/baseball.mp4"],
         ["examples/balancebeam.mp4"],
-        ["./examples/no-fight1.avi"],
-        ["./examples/no-fight2.avi"],
-        ["./examples/no-fight3.avi"],
-        ["./examples/no-fight4.avi"],
+        ["./examples/no-fight1.mp4"],
+        ["./examples/no-fight2.mp4"],
+        ["./examples/no-fight3.mp4"],
+        ["./examples/no-fight4.mp4"],
         
         
     ],
