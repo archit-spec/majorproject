@@ -1,6 +1,11 @@
 # videomae-base-finetuned-fight-nofight-subset2
 
+
 This model is a fine-tuned version of [MCG-NJU/videomae-base](https://huggingface.co/MCG-NJU/videomae-base) on the [Acts of Agression (CCTV footage fights)](https://huggingface.co/datasets/Pinwheel/ActsOfAgression) dataset.
+
+
+Get the trainging summary of the model from [here](https://wandb.ai/dumbal/huggingface/runs/hxktifdo?workspace=user-dumbal) and donwload it from [here](https://huggingface.co/archit11/videomae-base-finetuned-fight-nofight) or just clone this repository and run the required steps.
+
 It achieves the following results on the evaluation set:
 - Loss: 0.5190
 - Accuracy: 0.7435
