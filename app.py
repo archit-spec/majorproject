@@ -139,7 +139,7 @@ gr.Interface(
     ),
     article=(
         "<div style='text-align: center;'><a href='https://huggingface.co/docs/transformers/model_doc/videomae' target='_blank'>VideoMAE</a>"
-        " <center><a href='https://huggingface.co/sayakpaul/videomae-base-finetuned-kinetics-finetuned-ucf101-subset' target='_blank'>Fine-tuned Model</a></center></div>"
+        " <center><a href='https://huggingface.co/archit11/videomae-base-finetuned-fight-nofight-subset2' target='_blank'>Fine-tuned Model</a></center></div>"
     ),
     allow_flagging=False,
     allow_screenshot=False,
