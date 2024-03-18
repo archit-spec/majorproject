@@ -49,14 +49,6 @@ The following table summarizes the training results for the `videomae-base-finet
 | 1.8786 | 6.13 | 616 | 2.2725 | 0.2341 |
 | 1.71 | 7.12 | 700 | 2.2228 | 0.2226 |
 
-### Framework Versions
-
-The following framework versions were used during training:
-
-- Transformers 4.38.1
-- Pytorch 2.1.2
-- Datasets 2.1.0
-- Tokenizers 0.15.2
 
 ## Model description
 
@@ -66,18 +58,6 @@ Classifies video input into 13 Classes
 
 Can be used to detect instances of vandalism in CCTV footage.
 
-### Training hyperparameters
-
-The following hyperparameters were used during training:
-- learning_rate: 5e-05
-- train_batch_size: 8
-- eval_batch_size: 8
-- seed: 42
-- optimizer: Adam with betas=(0.9,0.999) and epsilon=1e-08
-- lr_scheduler_type: linear
-- lr_scheduler_warmup_ratio: 0.1
-- training_steps: 252
-- mixed_precision_training: Native AMP
 
 9## Demo
 
