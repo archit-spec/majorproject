@@ -20,7 +20,7 @@ from torchvision.transforms import (
 )
 from transformers import VideoMAEFeatureExtractor, VideoMAEForVideoClassification
 
-MODEL_CKPT = "archit11/videomae-base-finetuned-fight-nofight-subset2"
+MODEL_CKPT = "archit11/videomae-base-finetuned-ucfcrime-full2"
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 MODEL = VideoMAEForVideoClassification.from_pretrained(MODEL_CKPT).to(DEVICE)
@@ -119,8 +119,8 @@ def infer(video_file):
 
 gr.Interface(
     fn=infer,
-    inputs=gr.Video(type="file"),
-    outputs=gr.Label(num_top_classes=3),
+    inputs=gr.Video(),
+    outputs=gr.Label(num_top_classes=7),
     examples=[
         ["examples/fight.mp4"],
         ["examples/baseball.mp4"],
@@ -129,8 +129,6 @@ gr.Interface(
         ["./examples/no-fight2.mp4"],
         ["./examples/no-fight3.mp4"],
         ["./examples/no-fight4.mp4"],
-        
-        
     ],
    title="VideoMAE fin-tuned on a subset of Fight / No Fight dataset",
     description=(
@@ -142,5 +140,4 @@ gr.Interface(
         " <center><a href='https://huggingface.co/archit11/videomae-base-finetuned-fight-nofight-subset2' target='_blank'>Fine-tuned Model</a></center></div>"
     ),
     allow_flagging=False,
-    allow_screenshot=False,
 ).launch()
