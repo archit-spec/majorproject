@@ -1,4 +1,4 @@
-## VideoMAE: Fine-tuned for UCFCrime Full Datasethis model is a fine-tuned version of [MCG-NJU/videomae-base](https://huggingface.co/MCG-NJU/videomae-base) on the [Acts of Agression (CCTV footage fights)](https://huggingface.co/datasets/Pinwheel/ActsOfAgression) dataset.
+## VideoMAE: Fine-tuned for UCFCrime Full Datasethis model is a fine-tuned version of [MCG-NJU/videomae-base](https://huggingface.co/MCG-NJU/videomae-base) .
 
 This model is a fine-tuned version of [MCG-NJU/videomae-base](https://huggingface.co/MCG-NJU/videomae-base) on the [UCF-CRIME](https://paperswithcode.com/dataset/ucf-crime) dataset.
 Get the trainging summary of the model from [wandb summary](https://wandb.ai/dumbal/huggingface/runs/3xelrisz) and donwload it from [huggingface repository](https://huggingface.co/archit11/videomae-base-finetuned-ucfcrime-full) or just clone this repository and run the required steps.
