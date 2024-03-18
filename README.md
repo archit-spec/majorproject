@@ -4,9 +4,6 @@ This model is a fine-tuned version of [MCG-NJU/videomae-base](https://huggingfac
 Get the trainging summary of the model from [wandb summary](https://wandb.ai/dumbal/huggingface/runs/3xelrisz) and donwload it from [huggingface repository](https://huggingface.co/archit11/videomae-base-finetuned-ucfcrime-full) or just clone this repository and run the required steps.
 
 
-## Overview
-
-This repository contains a fine-tuned version of the `MCG-NJU/videomae-base` model, trained on an unknown dataset for video understanding tasks. The model is specifically fine-tuned on the UCFCrime Full2 dataset, which is a collection of real-world surveillance videos capturing various criminal activities.
 
 ## Model Description
 
@@ -23,7 +20,7 @@ However, it's important to note that the model's performance and limitations are
 The model was fine-tuned on the UCFCrime Full2 dataset, which contains real-world surveillance videos capturing various criminal activities. However, more information about the specific dataset split, preprocessing steps, and evaluation metrics used is needed for a complete understanding of the model's training and evaluation procedure.
 
 ## Training Procedure
-
+procedure : (./videomae-classification-finetuneing.ipynb)[./videomae-classification-finetuneing.ipynb]
 ### Training Hyperparameters
 
 The following hyperparameters were used during training:
@@ -61,27 +58,13 @@ The following framework versions were used during training:
 - Datasets 2.1.0
 - Tokenizers 0.15.2
 
-## Conclusion
-
-The `videomae-base-finetuned-ucfcrime-full2` model is a fine-tuned version of the `MCG-NJU/videomae-base` model, specifically trained on the UCFCrime Full2 dataset for video understanding tasks related to criminal activity detection and recognition. While it shows promising results, it's important to consider the model's limitations and potential biases based on the training data and architecture. Further information about the dataset, preprocessing steps, and evaluation metrics would be helpful for a more comprehensive understanding of the model's performance and applicability. videomae-base-finetuned-fight-nofight-subset2
-
-
-This model is a fine-tuned version of [MCG-NJU/videomae-base](https://huggingface.co/MCG-NJU/videomae-base) on the [Acts of Agression (CCTV footage fights)](https://huggingface.co/datasets/Pinwheel/ActsOfAgression) dataset.
-
-
-Get the trainging summary of the model from [here](https://wandb.ai/dumbal/huggingface/runs/hxktifdo?workspace=user-dumbal) and donwload it from [here](https://huggingface.co/archit11/videomae-base-finetuned-fight-nofight-subset2) or just clone this repository and run the required steps.
-
-It achieves the following results on the evaluation set:
-- Loss: 0.5190
-- Accuracy: 0.7435
-
 ## Model description
 
-Classifies video input into "Fight" or "No Fight" Class
+Classifies video input into 13 Classes
 
 ## Intended uses & limitations
 
-Can be used to detect fights/crime in CCTV footage.
+Can be used to detect instances of vandalism in CCTV footage.
 
 ### Training hyperparameters
 
@@ -96,23 +79,7 @@ The following hyperparameters were used during training:
 - training_steps: 252
 - mixed_precision_training: Native AMP
 
-### Training results
-
-| Training Loss | Epoch | Step | Validation Loss | Accuracy |
-|:-------------:|:-----:|:----:|:---------------:|:--------:|
-| 0.5145        | 0.25  | 64   | 0.7845           | 0.5075   |
-| 0.607         | 1.25  | 128  | 0.6886           | 0.6343   |
-| 0.3986        | 2.25  | 192  | 0.5106           | 0.7463   |
-| 0.3632        | 3.24  | 252  | 0.7408           | 0.6716   |
-
-### Framework versions
-
-- Transformers 4.37.0
-- PyTorch 1.2.1
-- Datasets 2.1.0
-- Tokenizers 0.15.1
-
-## Demo
+9## Demo
 
 ![Video Demo](./media/demo_vid.mp4)
 
