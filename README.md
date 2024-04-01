@@ -63,6 +63,11 @@ Can be used to detect instances of vandalism in CCTV footage.
 
 ![Video Demo](./media/demo_vid.mp4)
 
+
+## Live inference:
+
+![./Screenshot_20240401_230954.png]
+
 ## License
 
 
